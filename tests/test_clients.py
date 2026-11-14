@@ -64,5 +64,23 @@ class ClientTests(unittest.TestCase):
         self.assertEqual({f['path'] for f in files},{'.gitignore','App.swift','new file.txt'})
         self.assertEqual(next(f['size'] for f in files if f['path']=='App.swift'),len(b'uncommitted change'))
 
+    @unittest.skipUnless(shutil.which('powershell') or shutil.which('pwsh'),'PowerShell not installed')
+    def test_powershell_accepts_a_repository_directory_alias(self):
+        alias=self.base/'repository-alias'
+        try:alias.symlink_to(self.repo,target_is_directory=True)
+        except OSError as exc:self.skipTest('Directory links unavailable: '+str(exc))
+        shell=shutil.which('powershell') or shutil.which('pwsh')
+        result=subprocess.run([shell,'-NoProfile','-File',str(SCRIPTS/'snapshot.ps1'),'-Source',str(alias),'-ManifestOnly'],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertEqual({f['path'] for f in json.loads(result.stdout)['files']},{'.gitignore','App.swift','new file.txt'})
+
+    @unittest.skipUnless(shutil.which('powershell') or shutil.which('pwsh'),'PowerShell not installed')
+    def test_powershell_still_rejects_a_repository_subdirectory(self):
+        nested=self.repo/'nested';nested.mkdir()
+        shell=shutil.which('powershell') or shutil.which('pwsh')
+        result=subprocess.run([shell,'-NoProfile','-File',str(SCRIPTS/'snapshot.ps1'),'-Source',str(nested),'-ManifestOnly'],capture_output=True,text=True)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('Source must be the repository root',result.stdout)
+
 
 if __name__=='__main__':unittest.main()

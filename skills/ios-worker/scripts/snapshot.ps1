@@ -16,7 +16,11 @@ try {
   $proc.Dispose();return $stdout
  }
  $gitRoot=(GitOutput 'rev-parse --show-toplevel').Trim()
- if([IO.Path]::GetFullPath($gitRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) -ne $root){throw 'Source must be the repository root'}
+ # Let Git identify the root: path strings can differ through macOS /var
+ # aliases or Windows short/long directory names for the same directory.
+ if((GitOutput 'rev-parse --show-prefix').Trim()){throw 'Source must be the repository root'}
+ $root=[IO.Path]::GetFullPath($gitRoot).TrimEnd([IO.Path]::DirectorySeparatorChar)
+ if($out -and $out.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Put the ZIP outside the source repository'}
  $modes=@{}
  foreach($entry in (GitOutput 'ls-files --stage -z').Split([char]0)){
   if(-not $entry){continue};$parts=$entry.Split([char]9,2);$meta=$parts[0].Split(' ')
