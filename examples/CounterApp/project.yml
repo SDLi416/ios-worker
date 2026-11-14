@@ -1,0 +1,35 @@
+name: CounterDemo
+options:
+  bundleIdPrefix: com.example.iosworker
+  deploymentTarget:
+    iOS: '17.0'
+settings:
+  GENERATE_INFOPLIST_FILE: YES
+  SWIFT_VERSION: '5.0'
+  TARGETED_DEVICE_FAMILY: '1,2'
+targets:
+  CounterDemo:
+    type: application
+    platform: iOS
+    sources: [App]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.iosworker.CounterDemo
+  CounterDemoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: CounterDemo
+  CounterDemoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: CounterDemo
+schemes:
+  CounterDemo:
+    build:
+      targets:
+        CounterDemo: all
+    test:
+      targets: [CounterDemoTests, CounterDemoUITests]

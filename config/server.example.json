@@ -1,0 +1,20 @@
+{
+  "root": "/Volumes/BuildSSD/iOSWorker",
+  "mount": "/Volumes/BuildSSD",
+  "volume_uuid": "GENERATED_FROM_THE_SELECTED_VOLUME",
+  "owner": "GENERATED_PER_DEPLOYMENT",
+  "host": "127.0.0.1",
+  "port": 9443,
+  "tls_cert": "/Volumes/BuildSSD/iOSWorker/Service/config/server.crt",
+  "tls_key": "/Volumes/BuildSSD/iOSWorker/Service/config/server.key",
+  "build_token": "REPLACE_WITH_A_RANDOM_BUILD_TOKEN",
+  "admin_token": "REPLACE_WITH_A_DIFFERENT_RANDOM_ADMIN_TOKEN",
+  "allowed_networks": ["127.0.0.1/32"],
+  "developer_dir": "/Applications/Xcode.app/Contents/Developer",
+  "default_simulator": null,
+  "build_jobs": 4,
+  "min_external_free_gb": 20,
+  "min_internal_free_gb": 15,
+  "hard_external_free_gb": 8,
+  "hard_internal_free_gb": 5
+}

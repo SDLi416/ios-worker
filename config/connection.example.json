@@ -1,0 +1,6 @@
+{
+  "url": "https://mac-worker.example.test:9443",
+  "token": "REPLACE_WITH_A_RANDOM_BUILD_OR_ADMIN_TOKEN",
+  "ca_file": "server.crt",
+  "certificate_sha256": "REPLACE_WITH_THE_SHA256_OF_THE_DER_CERTIFICATE"
+}
