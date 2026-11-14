@@ -1,5 +1,6 @@
 """Portable client checks: no Worker connection, credentials or Apple SDK needed."""
 import importlib.util
+import hashlib
 import json
 import os
 import shutil
@@ -63,6 +64,18 @@ class ClientTests(unittest.TestCase):
         files=json.loads(result.stdout)['files']
         self.assertEqual({f['path'] for f in files},{'.gitignore','App.swift','new file.txt'})
         self.assertEqual(next(f['size'] for f in files if f['path']=='App.swift'),len(b'uncommitted change'))
+        self.assertEqual(next(f['sha256'] for f in files if f['path']=='App.swift'),hashlib.sha256(b'uncommitted change').hexdigest())
+
+    @unittest.skipUnless(shutil.which('powershell') or shutil.which('pwsh'),'PowerShell not installed')
+    def test_powershell_zip_and_checksum_match_the_worktree(self):
+        shell=shutil.which('powershell') or shutil.which('pwsh')
+        output=self.base/'powershell-source.zip'
+        result=subprocess.run([shell,'-NoProfile','-File',str(SCRIPTS/'snapshot.ps1'),'-Source',str(self.repo),'-OutputFile',str(output)],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertEqual(json.loads(result.stdout)['sha256'],hashlib.sha256(output.read_bytes()).hexdigest())
+        with zipfile.ZipFile(output) as archive:
+            self.assertEqual(set(archive.namelist()),{'.gitignore','App.swift','new file.txt'})
+            self.assertEqual(archive.read('App.swift'),b'uncommitted change')
 
     @unittest.skipUnless(shutil.which('powershell') or shutil.which('pwsh'),'PowerShell not installed')
     def test_powershell_accepts_a_repository_directory_alias(self):

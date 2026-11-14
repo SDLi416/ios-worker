@@ -1,6 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$Source,[string]$OutputFile='', [switch]$ManifestOnly)
 $ErrorActionPreference='Stop'
 try {
+ . (Join-Path $PSScriptRoot 'files.ps1')
  $root=(Resolve-Path -LiteralPath $Source).Path.TrimEnd([IO.Path]::DirectorySeparatorChar)
  $out=if($OutputFile){[IO.Path]::GetFullPath($OutputFile)}else{''}
  if(-not $ManifestOnly -and -not $out){throw 'OutputFile required'}
@@ -46,7 +47,7 @@ try {
  }
  if($files.Count -eq 0 -or $files.Count -gt 100000 -or $expanded -gt 8000000000){throw 'Source snapshot is empty or too large'}
  if($ManifestOnly){
-  $manifest=@(foreach($file in $files){@{path=$file.name;sha256=(Get-FileHash -LiteralPath $file.path -Algorithm SHA256).Hash.ToLowerInvariant();size=(Get-Item -LiteralPath $file.path -Force).Length;executable=[bool]($file.mode -band 73)}})
+  $manifest=@(foreach($file in $files){@{path=$file.name;sha256=(Get-WorkerFileSha256 $file.path);size=(Get-Item -LiteralPath $file.path -Force).Length;executable=[bool]($file.mode -band 73)}})
   ConvertTo-Json -InputObject @{files=$manifest} -Depth 10 -Compress
   return
  }
@@ -64,5 +65,5 @@ try {
    }
   }finally{$zip.Dispose()}
  }finally{$output.Dispose()}
- @{zip_path=$out;file_count=$files.Count;sha256=(Get-FileHash -LiteralPath $out -Algorithm SHA256).Hash.ToLowerInvariant();includes_working_tree_changes=$true}|ConvertTo-Json
+ @{zip_path=$out;file_count=$files.Count;sha256=(Get-WorkerFileSha256 $out);includes_working_tree_changes=$true}|ConvertTo-Json
 }catch{@{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1}

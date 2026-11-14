@@ -2,6 +2,7 @@ param([string]$RequestFile='')
 $ErrorActionPreference='Stop'
 $skillRoot=Split-Path $PSScriptRoot -Parent
 try {
+ . (Join-Path $PSScriptRoot 'files.ps1')
  $request=if($RequestFile){Get-Content -LiteralPath $RequestFile -Raw -Encoding UTF8|ConvertFrom-Json}else{[pscustomobject]@{operation='status'}}
  $base=if($RequestFile){Split-Path ([IO.Path]::GetFullPath($RequestFile)) -Parent}else{(Get-Location).Path}
  $config=if($request.operation -in @('cleanup_execute','retention_execute','register_device')){
@@ -80,7 +81,7 @@ try {
    $parent=Split-Path ([IO.Path]::GetFullPath($out)) -Parent
    if(-not(Test-Path -LiteralPath $parent)){[IO.Directory]::CreateDirectory($parent)|Out-Null}
    $null=Api 'GET' ($path+'/artifacts/'+[uri]::EscapeDataString($request.name)) $null '' $out
-   $digest=(Get-FileHash -LiteralPath $out -Algorithm SHA256).Hash.ToLowerInvariant()
+   $digest=Get-WorkerFileSha256 $out
    if($digest -ne $item[0].sha256){throw 'Downloaded artifact checksum mismatch; retain it for inspection'}
    $result=@{saved=$out;sha256=$digest;verified=$true}
   }
